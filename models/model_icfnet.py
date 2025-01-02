@@ -131,27 +131,6 @@ class ROD(nn.Module):
         
         return h_path_f, h_path_o
     
-class ROD_pro(nn.Module):
-    def __init__(self, in_channels, out_channels, dropout):
-        super(ROD_pro, self).__init__()
-        self.projector = nn.Sequential(nn.Linear(in_channels, in_channels),
-                                       nn.GELU(),
-                                       nn.Linear(in_channels, in_channels),
-                                       nn.GELU())
-        self.fusor = nn.Sequential(nn.Linear(in_channels, in_channels),
-                                       nn.GELU(),
-                                       nn.Linear(in_channels, out_channels),
-                                       nn.GELU(),
-                                       nn.Dropout(dropout))
-        
-    def forward(self, h_path, h_path_omic, h_path_text):
-        h_path_r = self.projector(h_path).squeeze()
-        h_path_o = h_path_r - h_path_omic - h_path_text
-        h_path_f = h_path_r + h_path_o
-        h_path_f = self.fusor(h_path_f)
-        
-        return h_path_f, h_path_o
-
 
 #############################
 ### ICFNet Implementation ###
@@ -219,8 +198,7 @@ class ICFNet(nn.Module):
         self.text_rho = nn.Sequential(*[nn.Linear(size[2], size[2]), nn.ReLU(), nn.Dropout(dropout)])
         
         ### Residual Orthogonal Decomposition
-        # self.rod = ROD(size[2], size[2], dropout)
-        self.rod = ROD_pro(size[2], size[2], dropout)
+        self.rod = ROD(size[2], size[2], dropout)
         
         ### Fusion Layer
         if self.fusion == 'concat':
