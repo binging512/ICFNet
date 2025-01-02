@@ -1,0 +1,5 @@
+data
+.pyc
+pretrained
+results
+**/__pycache__/*
